@@ -1,3 +1,6 @@
+const PDFLib = require(`pdf-lib`)
+const fs = require(`fs`)
+
 async function createPDF() {
     const pdfDoc = await PDFLib.PDFDocument.create()
     const page = pdfDoc.addPage([600, 800])
@@ -18,25 +21,39 @@ async function createPDF() {
         { simbol: 5, label: 'five' },
     ]
 
-    numbers.map((number, i) => {
-        page.drawText(`${number.simbol}`, {
-            x: x_position,
+    const task = {
+        name: `Solicitação`,
+        init_date: new Date().toLocaleDateString(),
+        process: {
+            name: `Compras`,
+            code: 20
+        },
+        assignee: {
+            name: `Fulano`,
+            signature: `fulano.fulano`
+        }
+    }
+    const header_data = [
+        [`LOGO`, `NOME_TAREFA`, `Processo: ${task.process.name}`],
+        [`LOGO`, `NOME_TAREFA`, `Responsável: ${task.assignee.name}`],
+        [`LOGO`, `NOME_TAREFA`, `Início: ${task.init_date}`]
+    ]
+
+    header_data.map((row, row_i) => {
+        row.map((cell, cell_i) => page.drawText(cell, {
+            x: x_position + (cell_i * (page_width / row.length)),
             y: y_position,
             size: 12
-        })
-        page.drawText(`${number.label}`, {
-            x: x_position * 2,
-            y: y_position,
-            size: 12
-        })
-        y_position -= 30
+        }))
+        y_position += 30
     })
 
 
     const pdfBytes = await pdfDoc.save()
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' })
-    const link = document.getElementById('downloadPDF')
-    link.href = URL.createObjectURL(blob)
-    link.download = `document_test`
+    fs.writeFileSync(`teste.pdf`, pdfBytes)
+    /* const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+     const link = document.getElementById('downloadPDF')
+     link.href = URL.createObjectURL(blob)
+     link.download = `document_test` */
 }
 createPDF()
